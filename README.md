@@ -81,6 +81,17 @@
 	4. identifyFaceExpression：识别表情，可设置缩放大小
 	5. identifyFaceExpressionAndTags：识别表情和标签（如：只需显示a标签对应的文本），可设置缩放大小
 
+例子：
+
+	1. MoonUtil.identifyFaceExpression(getActivity(), tvMsg, content, ImageSpan.ALIGN_BOTTOM);//表情正常大小显示
+	2. MoonUtil.identifyFaceExpression(getActivity(), tvMsg, content, ImageSpan.ALIGN_BOTTOM, 4.5f);//表情缩放显示
+
+####3)StickerManager
+	1. getStickerBitmapUri:根据目录名（catalog）和贴图名（chartlet）得到对应贴图在asset中的uri
+	
+例子：
+	
+	1. String uri = StickerManager.getInstance().getStickerBitmapUri(attachment.getCatalog(), attachment.getChartlet());
 
 ###4、注意
 1. 该库使用了universal-image-loader。所以如果在项目中不要再次引入universal-image-loader。
