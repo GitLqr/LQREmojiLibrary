@@ -5,24 +5,20 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:orientation="vertical"
     tools:context="com.lqr.MainActivity">
 
-    <TextView
+    <Button
+        android:id="@+id/btnSimple"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="Hello World!"/>
+        android:layout_height="wrap_content"
+        android:text="简单的聊天界面"/>
 
-    <!--文本表情输入框-->
-    <EditText
-        android:id="@+id/messageEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <!--表情、贴图控件-->
-    <com.lqr.emoji.EmoticonPickerView
-        android:id="@+id/epv"
+    <Button
+        android:id="@+id/btnWx"
         android:layout_width="wrap_content"
-        android:layout_height="250dp"/>
+        android:layout_height="wrap_content"
+        android:text="仿微信聊天界面"/>
+
 </LinearLayout>

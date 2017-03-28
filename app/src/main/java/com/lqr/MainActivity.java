@@ -1,42 +1,42 @@
 package com.lqr;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.widget.EditText;
+import android.view.View;
+import android.widget.Button;
 
-import com.lqr.emoji.EmoticonPickerView;
-import com.lqr.emoji.IEmoticonSelectedListener;
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements IEmoticonSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
-    private EmoticonPickerView mEpv;
-    private EditText messageEditText;
+    @Bind(R.id.btnSimple)
+    Button mBtnSimple;
+    @Bind(R.id.btnWx)
+    Button mBtnWx;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        messageEditText = (EditText) findViewById(R.id.messageEditText);
-        mEpv = (EmoticonPickerView) findViewById(R.id.epv);
-        mEpv.setWithSticker(true);//开启贴图功能
-        mEpv.show(this);//显示表情视图并设置监听
-        mEpv.attachEditText(messageEditText);//把EditText交给EmoticonPickerView控制
-    }
+        ButterKnife.bind(this);
 
-    /**
-     * 表情选择的监听
-     * *************** IEmojiSelectedListener ***************
-     */
-    @Override
-    public void onEmojiSelected(String key) {
-    }
+        mBtnSimple.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SimpleSessionActivity.class);
+                startActivity(intent);
+            }
+        });
 
-    //选择贴图
-    @Override
-    public void onStickerSelected(String catalog, String chartlet) {
-        Log.i("LQR", "onStickerSelected, catalog =" + catalog
-                + ", chartlet =" + chartlet);
-
+        mBtnWx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, WxSessionActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }

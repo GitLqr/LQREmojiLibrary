@@ -1,5 +1,6 @@
 package com.lqr.emoji;
 
+
 public class StickerItem {
     private String category;//类别名
     private String name;
@@ -22,12 +23,11 @@ public class StickerItem {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof StickerItem) {
-            StickerItem item = (StickerItem) o;
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof StickerItem) {
+            StickerItem item = (StickerItem) obj;
             return item.getCategory().equals(category) && item.getName().equals(name);
         }
-
         return false;
     }
 }

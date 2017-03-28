@@ -1,41 +1,28 @@
 package com.lqr.emoji;
 
-import android.content.Context;
-import android.content.res.AssetManager;
 
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StickerCategory implements Serializable {
+public class StickerCategory {
     private static final long serialVersionUID = -81692490861539040L;
 
-    private String name; // 贴纸包名
-    private String title; // 显示的标题
-    private boolean system; // 是否是系统内置表情
-    private int order = 0; // 默认顺序
+    private String name;//贴图包名
+    private String title;//显示的标题
+    private boolean system;//是否是系统内置表情
+    private int order = 0;//默认顺序
 
     private transient List<StickerItem> stickers;
 
     public StickerCategory(String name, String title, boolean system, int order) {
-        this.title = title;
         this.name = name;
+        this.title = title;
         this.system = system;
         this.order = order;
-
         loadStickerData();
     }
 
-    public boolean system() {
-        return system;
-    }
-
-    public void setSystem(boolean system) {
-        this.system = system;
-    }
 
     public String getName() {
         return name;
@@ -43,24 +30,6 @@ public class StickerCategory implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<StickerItem> getStickers() {
-        return stickers;
-    }
-
-    public boolean hasStickers() {
-        return stickers != null && stickers.size() > 0;
-    }
-
-    public InputStream getCoverNormalInputStream(Context context) {
-        String filename = name + "_s_normal.png";
-        return makeFileInputStream(context, filename);
-    }
-
-    public InputStream getCoverPressedInputStream(Context context) {
-        String filename = name + "_s_pressed.png";
-        return makeFileInputStream(context, filename);
     }
 
     public String getTitle() {
@@ -71,6 +40,34 @@ public class StickerCategory implements Serializable {
         this.title = title;
     }
 
+    public boolean isSystem() {
+        return system;
+    }
+
+    public void setSystem(boolean system) {
+        this.system = system;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public List<StickerItem> getStickers() {
+        return stickers;
+    }
+
+    public void setStickers(List<StickerItem> stickers) {
+        this.stickers = stickers;
+    }
+
+    public boolean hasStickers() {
+        return stickers != null && stickers.size() > 0;
+    }
+
     public int getCount() {
         if (stickers == null || stickers.isEmpty()) {
             return 0;
@@ -79,51 +76,49 @@ public class StickerCategory implements Serializable {
         return stickers.size();
     }
 
-    public int getOrder() {
-        return order;
-    }
-
-    private InputStream makeFileInputStream(Context context, String filename) {
-        try {
-            if (system) {
-                AssetManager assetManager = context.getResources().getAssets();
-                String path = "sticker/" + filename;
-                return assetManager.open(path);
-            } else {
-                // for future
+    public String getCoverImgPath() {
+        for (File file : new File(LQREmotionKit.getStickerPath()).listFiles()) {
+            if (file.isFile() && file.getName().startsWith(name)) {
+                return "file://" + file.getAbsolutePath();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
         return null;
     }
 
     public List<StickerItem> loadStickerData() {
         List<StickerItem> stickers = new ArrayList<>();
-        AssetManager assetManager = LQRUIKit.getContext().getResources().getAssets();
-        try {
-            String[] files = assetManager.list("sticker/" + name);
-            for (String file : files) {
-                stickers.add(new StickerItem(name, file));
+        File stickerDir = new File(LQREmotionKit.getStickerPath(), name);
+        if (stickerDir.exists()) {
+            File[] files = stickerDir.listFiles();
+            for (File file : files) {
+                //比如：tsj ---> tsj/tsj_001.gif
+//                stickers.add(new StickerItem(name, name + File.separator + file.getName()));
+                stickers.add(new StickerItem(name, file.getName()));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        this.stickers = stickers;
+        //补充最后一页缺少的贴图
+        int tmp = stickers.size() % EmotionLayout.STICKER_PER_PAGE;
+        if (tmp != 0) {
+            int tmp2 = EmotionLayout.STICKER_PER_PAGE - (stickers.size() - (stickers.size() / EmotionLayout.STICKER_PER_PAGE) * EmotionLayout.STICKER_PER_PAGE);
+            for (int i = 0; i < tmp2; i++) {
+                stickers.add(new StickerItem("", ""));
+            }
+        }
+
+        this.setStickers(stickers);
         return stickers;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == null || !(o instanceof StickerCategory)) {
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof StickerCategory)) {
             return false;
         }
-        if (o == this) {
+        if (obj == this) {
             return true;
         }
-        StickerCategory r = (StickerCategory) o;
+        StickerCategory r = (StickerCategory) obj;
         return r.getName().equals(getName());
     }
 

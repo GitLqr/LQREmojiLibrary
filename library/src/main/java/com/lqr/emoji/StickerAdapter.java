@@ -3,36 +3,54 @@ package com.lqr.emoji;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.nostra13.universalimageloader.core.ImageLoader;
+import android.widget.RelativeLayout;
 
 /**
- * 每屏显示的贴图
+ * CSDN_LQR
+ * 贴图适配器
  */
+
 public class StickerAdapter extends BaseAdapter {
 
-    private Context context;
-    private StickerCategory category;
+    private Context mContext;
+    private StickerCategory mCategory;
     private int startIndex;
 
-    public StickerAdapter(Context mContext, StickerCategory category, int startIndex) {
-        this.context = mContext;
-        this.category = category;
+    private int mEmotionLayoutWidth;
+    private int mEmotionLayoutHeight;
+    private float mPerWidth;
+    private float mPerHeight;
+    private float mIvSize;
+
+    public StickerAdapter(Context context, StickerCategory category, int emotionLayoutWidth, int emotionLayoutHeight, int startIndex) {
+        mContext = context;
+        mCategory = category;
         this.startIndex = startIndex;
+
+        mEmotionLayoutWidth = emotionLayoutWidth;
+        mEmotionLayoutHeight = emotionLayoutHeight - LQREmotionKit.dip2px(35 + 26 + 50);//减去底部的tab高度、小圆点的高度才是viewpager的高度，再减少30dp是让表情整体的顶部和底部有个外间距
+        mPerWidth = mEmotionLayoutWidth * 1f / EmotionLayout.STICKER_COLUMNS;
+        mPerHeight = mEmotionLayoutHeight * 1f / EmotionLayout.STICKER_ROWS;
+
+        float ivWidth = mPerWidth * .8f;
+        float ivHeight = mPerHeight * .8f;
+        mIvSize = Math.min(ivWidth, ivHeight);
     }
 
-    public int getCount() {//获取每一页的数量
-        int count = category.getStickers().size() - startIndex;
-        count = Math.min(count, EmoticonView.STICKER_PER_PAGE);
+
+    @Override
+    public int getCount() {
+        int count = mCategory.getStickers().size() - startIndex;
+        count = Math.min(count, EmotionLayout.STICKER_PER_PAGE);
         return count;
     }
 
     @Override
     public Object getItem(int position) {
-        return category.getStickers().get(startIndex + position);
+        return mCategory.getStickers().get(startIndex + position);
     }
 
     @Override
@@ -40,39 +58,49 @@ public class StickerAdapter extends BaseAdapter {
         return startIndex + position;
     }
 
-
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         StickerViewHolder viewHolder;
         if (convertView == null) {
-            convertView = View.inflate(context, R.layout.nim_sticker_picker_view, null);
+            RelativeLayout rl = new RelativeLayout(mContext);
+            rl.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, (int) mPerHeight));
+
+            ImageView imageView = new ImageView(mContext);
+            imageView.setImageResource(R.drawable.ic_tab_emoji);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.width = (int) mIvSize;
+            params.height = (int) mIvSize;
+            params.addRule(RelativeLayout.CENTER_IN_PARENT);
+            imageView.setLayoutParams(params);
+
+            rl.addView(imageView);
+
             viewHolder = new StickerViewHolder();
-            viewHolder.imageView = (ImageView) convertView.findViewById(R.id.sticker_thumb_image);
-            viewHolder.descLabel = (TextView) convertView.findViewById(R.id.sticker_desc_label);
+            viewHolder.mImageView = imageView;
+
+            convertView = rl;
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (StickerViewHolder) convertView.getTag();
         }
 
         int index = startIndex + position;
-        if (index >= category.getStickers().size()) {
+        if (index >= mCategory.getStickers().size()) {
             return convertView;
         }
 
-        StickerItem sticker = category.getStickers().get(index);
+        StickerItem sticker = mCategory.getStickers().get(index);
         if (sticker == null) {
             return convertView;
         }
 
-        ImageLoader.getInstance().displayImage(StickerManager.getInstance().getStickerBitmapUri(sticker.getCategory()
-                , sticker.getName()), viewHolder.imageView, StickerManager.getInstance().getStickerImageOptions(LQRUIKit.dip2px(64)));
-
-        viewHolder.descLabel.setVisibility(View.GONE);
+        String stickerBitmapUri = StickerManager.getInstance().getStickerBitmapUri(sticker.getCategory(), sticker.getName());
+        LQREmotionKit.getImageLoader().displayImage(mContext, stickerBitmapUri, viewHolder.mImageView);
 
         return convertView;
     }
 
     class StickerViewHolder {
-        public ImageView imageView;
-        public TextView descLabel;
+        public ImageView mImageView;
     }
 }

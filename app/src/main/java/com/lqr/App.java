@@ -1,18 +1,24 @@
 package com.lqr;
 
 import android.app.Application;
+import android.content.Context;
+import android.widget.ImageView;
 
-import com.lqr.emoji.LQRUIKit;
-
-/**
- * Created by Administrator on 2016/12/28.
- */
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.lqr.emoji.IImageLoader;
+import com.lqr.emoji.LQREmotionKit;
 
 public class App extends Application {
 
     @Override
     public void onCreate() {
         super.onCreate();
-        LQRUIKit.init(getApplicationContext());
+        LQREmotionKit.init(this, new IImageLoader() {
+            @Override
+            public void displayImage(Context context, String path, ImageView imageView) {
+                Glide.with(context).load(path).centerCrop().diskCacheStrategy(DiskCacheStrategy.SOURCE).into(imageView);
+            }
+        });
     }
 }

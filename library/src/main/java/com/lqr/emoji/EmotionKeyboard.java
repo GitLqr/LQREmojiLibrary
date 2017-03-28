@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,44 +16,34 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 /**
- * @创建者 CSDN_LQR
- * @描述 源码来自开源项目https://github.com/dss886/Android-EmotionInputDetector
- * <p>
- * 本人只做部分修改（增加多表情按钮监按及回调，轻松实现仿微信效果）
+ * CSDN_LQR
+ * 表情键盘协调工具
  */
+
 public class EmotionKeyboard {
 
-    private static final String SHARE_PREFERENCE_NAME = "EmotionKeyboard";
-    private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "soft_input_height";
+    private static final String SHARE_PREFERENCE_NAME = "EmotionKeyBoard";
+    private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "sofe_input_height";
     private Activity mActivity;
     private InputMethodManager mInputManager;//软键盘管理类
-    private SharedPreferences sp;
+    private SharedPreferences mSp;
     private View mEmotionLayout;//表情布局
-    private EditText mEditText;//
+    private EditText mEditText;
     private View mContentView;//内容布局view,即除了表情布局或者软键盘布局以外的布局，用于固定bar的高度，防止跳闪
 
-    private EmotionKeyboard() {
+    public EmotionKeyboard() {
     }
 
-    /**
-     * 外部静态调用
-     *
-     * @param activity
-     * @return
-     */
     public static EmotionKeyboard with(Activity activity) {
         EmotionKeyboard emotionInputDetector = new EmotionKeyboard();
         emotionInputDetector.mActivity = activity;
         emotionInputDetector.mInputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        emotionInputDetector.sp = activity.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        emotionInputDetector.mSp = activity.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         return emotionInputDetector;
     }
 
     /**
      * 绑定内容view，此view用于固定bar的高度，防止跳闪
-     *
-     * @param contentView
-     * @return
      */
     public EmotionKeyboard bindToContent(View contentView) {
         mContentView = contentView;
@@ -63,9 +52,6 @@ public class EmotionKeyboard {
 
     /**
      * 绑定编辑框
-     *
-     * @param editText
-     * @return
      */
     public EmotionKeyboard bindToEditText(EditText editText) {
         mEditText = editText;
@@ -91,7 +77,7 @@ public class EmotionKeyboard {
     }
 
     /**
-     * 绑定表情按钮(可以有多个表情按钮)
+     * 绑定表情按钮（可以有多个表情按钮）
      *
      * @param emotionButton
      * @return
@@ -103,12 +89,10 @@ public class EmotionKeyboard {
         return this;
     }
 
-    @NonNull
     private View.OnClickListener getOnEmotionButtonOnClickListener() {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (mOnEmotionButtonOnClickListener != null) {
                     if (mOnEmotionButtonOnClickListener.onEmotionButtonOnClickListener(v)) {
                         return;
@@ -128,7 +112,6 @@ public class EmotionKeyboard {
                         showEmotionLayout();//两者都没显示，直接显示表情布局
                     }
                 }
-
             }
         };
     }
@@ -136,10 +119,10 @@ public class EmotionKeyboard {
     /*================== 表情按钮点击事件回调 begin ==================*/
     public interface OnEmotionButtonOnClickListener {
         /**
-         * 主要是为了适用仿微信的情况，微信有一个表情按钮和一个功能按钮，这2个按钮都是按钮了底部区域的显隐
+         * 主要是为了适用仿微信的情况，微信有一个表情按钮和一个功能按钮，这2个按钮都是控制了底部区域的显隐
          *
          * @param view
-         * @return true：拦截切换输入法，false：让输入法正常切换
+         * @return true:拦截切换输入法，false:让输入法正常切换
          */
         boolean onEmotionButtonOnClickListener(View view);
     }
@@ -154,16 +137,16 @@ public class EmotionKeyboard {
     /**
      * 设置表情内容布局
      *
-     * @param emotionView
+     * @param emotionLayout
      * @return
      */
-    public EmotionKeyboard setEmotionView(View emotionView) {
-        mEmotionLayout = emotionView;
+    public EmotionKeyboard setEmotionLayout(View emotionLayout) {
+        mEmotionLayout = emotionLayout;
         return this;
     }
 
     public EmotionKeyboard build() {
-//设置软件盘的模式：SOFT_INPUT_ADJUST_RESIZE  这个属性表示Activity的主窗口总是会被调整大小，从而保证软键盘显示空间。  
+        //设置软件盘的模式：SOFT_INPUT_ADJUST_RESIZE  这个属性表示Activity的主窗口总是会被调整大小，从而保证软键盘显示空间。
         //从而方便我们计算软件盘的高度
         mActivity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN |
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -188,7 +171,7 @@ public class EmotionKeyboard {
     private void showEmotionLayout() {
         int softInputHeight = getSupportSoftInputHeight();
         if (softInputHeight == 0) {
-            softInputHeight = sp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
+            softInputHeight = mSp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
         }
         hideSoftInput();
         mEmotionLayout.getLayoutParams().height = softInputHeight;
@@ -221,7 +204,7 @@ public class EmotionKeyboard {
     /**
      * 释放被锁定的内容高度
      */
-    private void unlockContentHeightDelayed() {
+    public void unlockContentHeightDelayed() {
         mEditText.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -233,7 +216,7 @@ public class EmotionKeyboard {
     /**
      * 编辑框获取焦点，并显示软件盘
      */
-    private void showSoftInput() {
+    public void showSoftInput() {
         mEditText.requestFocus();
         mEditText.post(new Runnable() {
             @Override
@@ -246,7 +229,7 @@ public class EmotionKeyboard {
     /**
      * 隐藏软件盘
      */
-    private void hideSoftInput() {
+    public void hideSoftInput() {
         mInputManager.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
     }
 
@@ -255,7 +238,7 @@ public class EmotionKeyboard {
      *
      * @return
      */
-    private boolean isSoftInputShown() {
+    public boolean isSoftInputShown() {
         return getSupportSoftInputHeight() != 0;
     }
 
@@ -289,7 +272,7 @@ public class EmotionKeyboard {
         }
         //存一份到本地
         if (softInputHeight > 0) {
-            sp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, softInputHeight).apply();
+            mSp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, softInputHeight).apply();
         }
         return softInputHeight;
     }
@@ -321,6 +304,6 @@ public class EmotionKeyboard {
      * @return
      */
     public int getKeyBoardHeight() {
-        return sp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
+        return mSp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
     }
-}  
+}

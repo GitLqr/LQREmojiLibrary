@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">LQREmojiLibrary</string>
+    <!--会话界面-->
+    <string name="send">发送</string>
+    <string name="please_to_talk">按住 说话</string>
+    <string name="shot">拍摄</string>
+    <string name="location">位置</string>
+    <string name="red_pack">红包</string>
+    <string name="album">相册</string>
 </resources>

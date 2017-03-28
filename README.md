@@ -1,157 +1,223 @@
 # LQREmojiLibrary
-网易云信表情功能抽离，支持经典表情及贴图，加入仿微信软键盘切换时平滑过渡
+一个超级牛逼的表情库，可使用表情及贴图功能，方便好用，抽离图片加载接口，图片加载工具可让开发者自己选择。
+
+##一、简述
+
+这个库相当牛逼，好用。这个库相当牛逼，好用。这个库相当牛逼，好用。好了，接下来直接看效果图吧：
+
+[DemoApp下载](app-release.apk)
+
+![image](screenshots/1.gif)
 
 
-##***一、引用初始化***
+##二、引用初始化
 
-###1、在自定义的Application使用LQRUIKit进行初始化
+###1、在自己项目中添加本项目依赖：
+
+	compile 'com.lqr.emoji:library:1.0.0'
+
+###2、初始化
+
+使用本库必须在自定义的Application中使用LQREmotionKit对库进行初始化，LQREmotionKit提供了四种初始化方法，请根据自己的需要选择。
+
+***使用前需要注意以下几点：**
+
+1. 本库抽离出了图片加载接口，可让开发者自己选择图片加载工具（如：Glide、UIL等），所以使用本库必须实现IImageLoader接口。
+2. 本库支持设置贴图的存放路径，这意味着开发者可以根据自己项目需求修改贴图的存放位置，并且支持贴图自定义。默认的贴图存放在/data/data/包名/files/stickers 目录下。
+
+####1)不带IImageLoader的init()
+
+	public static void init(Context context)
+	
+	public static void init(Context context, String stickerPath)
+
+
+####2)带IImageLoader的init()
+
+	public static void init(Context context, IImageLoader imageLoader)
+	
+	public static void init(Context context, String stickerPath, IImageLoader imageLoader)
+
+
+####3)示例
 
 	public class App extends Application {
 	
 	    @Override
 	    public void onCreate() {
 	        super.onCreate();
-			... your code ...
-
-	        LQRUIKit.init(getApplicationContext());
-
-			... your code ...
+	        LQREmotionKit.init(this, new IImageLoader() {
+	            @Override
+	            public void displayImage(Context context, String path, ImageView imageView) {
+	                Glide.with(context).load(path).centerCrop().diskCacheStrategy(DiskCacheStrategy.SOURCE).into(imageView);
+	            }
+	        });
 	    }
 	}
 
-###2、在AndroidManifest.xml中引用自定义的Application
+##三、表情功能集成
 
-	<application
-        android:name=".App"
-        android:theme="@style/AppTheme">
-        
-    </application>
+###1、布局中使用EmotionLayout控件
 
-##***二、表情与贴图功能集成***
-
-###1、在需要集成表情的功能的布局中设置以下代码
-
-	<LinearLayout
-	    xmlns:android="http://schemas.android.com/apk/res/android"
-	    xmlns:tools="http://schemas.android.com/tools"
-	    android:id="@+id/activity_main"
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent"
-	    android:orientation="vertical"
-	    tools:context="com.lqr.MainActivity">
+	<?xml version="1.0" encoding="utf-8"?>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	              android:layout_width="match_parent"
+	              android:layout_height="match_parent"
+	              android:orientation="vertical">
 	
-		... your code ...
-	
-		<!--文本表情输入框-->
-	    <EditText
-	        android:id="@+id/messageEditText"
+	    <!--内容区-->
+	    <LinearLayout
+	        android:id="@+id/llContent"
 	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"/>
+	        android:layout_height="0dp"
+	        android:layout_weight="1"
+	        android:orientation="vertical">
 	
-		<!--表情、贴图控件-->
-	    <com.lqr.emoji.EmoticonPickerView
-	        android:id="@+id/epv"
-	        android:layout_width="wrap_content"
-	        android:layout_height="180dp"/>
+	        ...
+			这里一般是放消息列表，和内容输入框等控件
+			...
+
+	    </LinearLayout>
+	
+	    <!--表情区-->
+	    <com.lqr.emoji.EmotionLayout
+	        android:id="@+id/elEmotion"
+	        android:layout_width="match_parent"
+	        android:layout_height="270dp"
+	        android:visibility="gone"/>
+	
 	</LinearLayout>
 
-###2、代码中使用（看注释）
-		
-		messageEditText = (EditText) findViewById(R.id.messageEditText);
-        mEpv = (EmoticonPickerView) findViewById(R.id.epv);
+###2、实现输入框图文混排
 
-        mEpv.setWithSticker(true);//开启贴图功能
-        mEpv.show(this);//显示表情视图并设置监听
-        mEpv.attachEditText(messageEditText);//把EditText交给EmoticonPickerView控制
+####1)将内容输入框交给EmotionLayout管理（强烈建议!!!）
 
-		mEpv.setVisibility(View.VISIBLE);//开关表情贴图控件
+	mElEmotion.attachEditText(mEtContent);
 
-###3、常用方法说明
-####1)EmoticonPickerView
+####2)实现IEmotionSelectedListener接口，手动实现图文混排(有自己的实现方式的，可以采用这种方式)
 
-	1. attachEditText:将EditText交给EmotionView保管，点击表情时自动插入表情
-	2. setWithSticker:是否开启贴图功能
-	3. show(IEmoticonSelectedListener listener):显示表情视图并设置点击监听（监听表情、贴图的点击事件）
+	mElEmotion.setEmotionSelectedListener(new IEmotionSelectedListener() {
+        @Override
+        public void onEmojiSelected(String key) {
+            if (mEtContent == null)
+                return;
+            Editable editable = mEtContent.getText();
+            if (key.equals("/DEL")) {
+                mEtContent.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
+            } else {
+                int start = mEtContent.getSelectionStart();
+                int end = mEtContent.getSelectionEnd();
+                start = (start < 0 ? 0 : start);
+                end = (start < 0 ? 0 : end);
+                editable.replace(start, end, key);
 
-####2)MoonUtil
-
-	1. replaceEmoticons:EditText用来转换表情文字的方法，如果没有使用EmoticonPickerView的attachEditText方法，则需要开发人员手动调用方法来又识别EditText中的表情
-	2. identifyFaceExpression:识别表情(RecyclerView或ListView中的item显示时会用到，以下一样)
-	3. identifyFaceExpressionAndATags：识别表情和标签（如：只需显示a标签对应的文本）
-	4. identifyFaceExpression：识别表情，可设置缩放大小
-	5. identifyFaceExpressionAndTags：识别表情和标签（如：只需显示a标签对应的文本），可设置缩放大小
-
-例子：
-
-	1. MoonUtil.identifyFaceExpression(getActivity(), tvMsg, content, ImageSpan.ALIGN_BOTTOM);//表情正常大小显示
-	2. MoonUtil.identifyFaceExpression(getActivity(), tvMsg, content, ImageSpan.ALIGN_BOTTOM, 4.5f);//表情缩放显示
-
-####3)StickerManager
-	1. getStickerBitmapUri:根据目录名（catalog）和贴图名（chartlet）得到对应贴图在asset中的uri
-	
-例子：
-	
-	1. String uri = StickerManager.getInstance().getStickerBitmapUri(attachment.getCatalog(), attachment.getChartlet());
-
-###4、注意
-1. 该库使用了universal-image-loader。所以如果在项目中不要再次引入universal-image-loader。
-2. 该库可以自定义贴图表情，但是写死了表情的类别名，分别是：ajmd、xxy、lt（在StickerManager类中定义的）。贴图需要放在自己工程的assets目录即可。一类贴图需要一个文件夹（存放贴图）和两张底部图片，注意命名规则，关系如下图：
-![image](screenshots/1.png)
-
-##***三、仿微信软键盘出现时输入框高度不变***
-EmotionKeyboard这个类可以模仿微信的切换软键盘与表情控件时不出现跳闪，真正做到平滑过渡。
-	
-
-	/**
-     * 初始化表情软键盘
-     */
-    private void initEmotionKeyboard() {
-		//1、创建EmotionKeyboard对象
-        mEmotionKeyboard = EmotionKeyboard.with(this);
-		//2、绑定输入框控件
-        mEmotionKeyboard.bindToEditText(mEtContent);
-		//3、绑定输入框上面的消息列表控件（这里用的是RecyclerView，其他控件也可以，注意该控件是会影响输入框位置的控件）
-        mEmotionKeyboard.bindToContent(mCvMessage);
-		//4、绑定输入框下面的底部区域（这里是把表情区和功能区共放在FrameLayout下，所以绑定的控件是FrameLayout）
-		mEmotionKeyboard.setEmotionView(mFlButtom);
-		//5、绑定表情按钮（可以绑定多个，如微信就有2个，一个是表情按钮，一个是功能按钮）
-        mEmotionKeyboard.bindToEmotionButton(mIvEmo, mIvAdd);
-        //6、当在第5步中绑定了多个EmotionButton时，这里的回调监听的view就有用了，注意是为了判断是否要自己来控制底部的显隐，还是交给EmotionKeyboard控制
-        mEmotionKeyboard.setOnEmotionButtonOnClickListener(new EmotionKeyboard.OnEmotionButtonOnClickListener() {
-            @Override
-            public boolean onEmotionButtonOnClickListener(View view) {
-                if (mBtnVoice.getVisibility() == View.VISIBLE) {
-                    hideBtnVoice();
-                }
-                //输入框底部显示时
-                if (mFlButtom.getVisibility() == View.VISIBLE) {
-                    //表情控件显示而点击的按钮是ivAdd时，拦截事件，隐藏表情控件，显示功能区
-                    if (mEpv.getVisibility() == View.VISIBLE && view.getId() == R.id.ivAdd) {
-                        mEpv.setVisibility(View.GONE);
-                        mLlButtomFunc.setVisibility(View.VISIBLE);
-                        return true;
-                        //功能区显示而点击的按钮是ivEmo时，拦截事件，隐藏功能区，显示表情控件
-                    } else if (mLlButtomFunc.getVisibility() == View.VISIBLE && view.getId() == R.id.ivEmo) {
-                        mEpv.setVisibility(View.VISIBLE);
-                        mLlButtomFunc.setVisibility(View.GONE);
-                        return true;
-                    }
-                } else {
-                    //点击ivEmo，显示表情控件
-                    if (view.getId() == R.id.ivEmo) {
-                        mEpv.setVisibility(View.VISIBLE);
-                        mLlButtomFunc.setVisibility(View.GONE);
-                        //点击ivAdd，显示功能区
-                    } else {
-                        mEpv.setVisibility(View.GONE);
-                        mLlButtomFunc.setVisibility(View.VISIBLE);
-                    }
-                }
-                return false;
+                int editEnd = mEtContent.getSelectionEnd();
+                MoonUtils.replaceEmoticons(LQREmotionKit.getContext(), editable, 0, editable.toString().length());
+                mEtContent.setSelection(editEnd);
             }
-        });
+        }
+
+        @Override
+        public void onStickerSelected(String categoryName, String stickerName, String stickerBitmapPath) {
+
+        }
+    });
+
+###3、实现内容区与表情区仿微信切换效果
+
+	private EmotionKeyboard mEmotionKeyboard;
+
+	private void initEmotionKeyboard() {
+        mEmotionKeyboard = EmotionKeyboard.with(this);
+        mEmotionKeyboard.bindToContent(mLlContent);
+        mEmotionKeyboard.bindToEmotionButton(mIvEmo);
+        mEmotionKeyboard.bindToEditText(mEtContent);
+        mEmotionKeyboard.setEmotionLayout(mElEmotion);
     }
 
-上面回调中的内容是我自己仿微信项目中的代码（不是当前项目中的例子！！），开发中需要根据自己项目的需求来编码，这里不去掉是为了帮助需要的人理解该回调的作用。最后附上效果图：
+###4、效果
+
+经过上面几步，就可以实现以下效果了：
 
 ![image](screenshots/2.gif)
+
+##四、贴图功能集成
+
+###1、设置贴图的存放位置
+
+这一步可略过，不设置的话，贴图的默认存放位置是 /data/data/包名/files/stickers ，可通过LQREmotionKit.getStickerPath()获得。
+
+贴图的存放位置只能通过LQREmotionKit的init()来设置：
+
+	LQREmotionKit.init(this, Environment.getExternalStorageDirectory().getAbsolutePath()+ File.separator+"sticker");
+
+	LQREmotionKit.init(this, Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "sticker", new IImageLoader() {
+            @Override
+            public void displayImage(Context context, String path, ImageView imageView) {
+                Glide.with(context).load(path).centerCrop().diskCacheStrategy(DiskCacheStrategy.SOURCE).into(imageView);
+            }
+        });
+
+###2、将贴图下载到指定贴图的存放位置
+
+####1)自带贴图
+
+本库支持 集成默认贴图，可将贴图按规则放置在assets的sticker目录下，当程序启动时，会自动将assets的sticker目录下所有的贴图复制到贴图的存放位置。
+
+![](screenshots/3.png)
+
+
+####2)网络下载贴图
+
+	//得到贴图的存放位置
+	String stickerPath = LQREmotionKit.getStickerPath();
+	...
+	网络下载（这里不同项目实现方式不同，请根据自己的项目实现该部分代码）
+	...
+
+###3、监听用户点击贴图事件
+
+	mElEmotion.setEmotionSelectedListener(new IEmotionSelectedListener() {
+        @Override
+        public void onEmojiSelected(String key) {
+            
+        }
+
+        @Override
+        public void onStickerSelected(String categoryName, String stickerName, String stickerBitmapPath) {
+            String stickerPath = stickerBitmapPath;
+            ...
+			发送图片
+			...
+        }
+    });
+
+###4、效果
+
+经过上面几步，就可以实现以下效果了：
+
+![image](screenshots/4.gif)
+
+##五、拓展按钮的控制
+
+###1、设置表情控件的拓展按钮
+
+默认表情控件的底部Tab是不显示“添加”按钮和“设置”按钮的，如果需要，可通过以下代码进行控制。
+
+	mElEmotion.setEmotionAddVisiable(true);
+    mElEmotion.setEmotionSettingVisiable(true);
+    mElEmotion.setEmotionExtClickListener(new IEmotionExtClickListener() {
+        @Override
+        public void onEmotionAddClick(View view) {
+            Toast.makeText(getApplicationContext(), "add", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onEmotionSettingClick(View view) {
+            Toast.makeText(getApplicationContext(), "setting", Toast.LENGTH_SHORT).show();
+        }
+    });
+
+###2、效果
+
+![image](screenshots/5.gif)
