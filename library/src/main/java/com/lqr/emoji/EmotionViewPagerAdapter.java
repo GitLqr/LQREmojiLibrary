@@ -28,7 +28,6 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
 
     int mPageCount = 0;
     int mTabPosi = 0;
-    int mVpCurrentItem = 0;
 
     private int mEmotionLayoutWidth;
     private int mEmotionLayoutHeight;
@@ -66,8 +65,6 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
 
-        mVpCurrentItem = position;
-
         Context context = container.getContext();
         RelativeLayout rl = new RelativeLayout(context);
         rl.setGravity(Gravity.CENTER);
@@ -78,6 +75,7 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
         gridView.setLayoutParams(params);
         gridView.setGravity(Gravity.CENTER);
 
+        gridView.setTag(position);//标记自己是第几页
         if (mTabPosi == 0) {
             gridView.setOnItemClickListener(emojiListener);
             gridView.setAdapter(new EmojiAdapter(context, mEmotionLayoutWidth, mEmotionLayoutHeight, position * EMOJI_PER_PAGE));
@@ -104,7 +102,7 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            int index = position + mVpCurrentItem * EmotionLayout.EMOJI_PER_PAGE;
+            int index = position + (Integer) parent.getTag() * EmotionLayout.EMOJI_PER_PAGE;
             int count = EmojiManager.getDisplayCount();
             if (position == EmotionLayout.EMOJI_PER_PAGE || index >= count) {
                 if (listener != null) {
@@ -120,8 +118,6 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
                     onEmojiSelected(text);
                 }
             }
-
-
         }
     };
     public AdapterView.OnItemClickListener stickerListener = new AdapterView.OnItemClickListener() {
@@ -130,7 +126,7 @@ public class EmotionViewPagerAdapter extends PagerAdapter {
 
             StickerCategory category = StickerManager.getInstance().getStickerCategories().get(mTabPosi - 1);
             List<StickerItem> stickers = category.getStickers();
-            int index = position + mVpCurrentItem * EmotionLayout.STICKER_PER_PAGE;
+            int index = position + (Integer) parent.getTag() * EmotionLayout.STICKER_PER_PAGE;
 
             if (index >= stickers.size()) {
                 Log.i("CSDN_LQR", "index " + index + " larger than size " + stickers.size());
