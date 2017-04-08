@@ -14,7 +14,7 @@
 
 ###1、在自己项目中添加本项目依赖：
 
-	compile 'com.lqr.emoji:library:1.0.1'
+	compile 'com.lqr.emoji:library:1.0.2'
 
 ###2、初始化
 

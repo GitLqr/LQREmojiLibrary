@@ -64,6 +64,12 @@ public class WxSessionActivity extends AppCompatActivity implements IEmotionSele
         initListener();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mEtContent.clearFocus();
+    }
+
     public void initView() {
         mElEmotion.attachEditText(mEtContent);
         initEmotionKeyboard();

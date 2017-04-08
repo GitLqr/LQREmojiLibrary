@@ -171,11 +171,17 @@ public class EmotionKeyboard {
     private void showEmotionLayout() {
         int softInputHeight = getSupportSoftInputHeight();
         if (softInputHeight == 0) {
-            softInputHeight = mSp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
+            softInputHeight = mSp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, dip2Px(270));
         }
         hideSoftInput();
         mEmotionLayout.getLayoutParams().height = softInputHeight;
         mEmotionLayout.setVisibility(View.VISIBLE);
+    }
+
+    public int dip2Px(int dip) {
+        float density = mActivity.getApplicationContext().getResources().getDisplayMetrics().density;
+        int px = (int) (dip * density + 0.5f);
+        return px;
     }
 
     /**
