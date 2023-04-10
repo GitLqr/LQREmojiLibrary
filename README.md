@@ -221,3 +221,5 @@
 ### 2、效果
 
 ![image](screenshots/5.gif)
+
+![](https://cdn.jsdelivr.net/gh/FullStackAction/PicBed@resource/image/FSA_QR_bottom.png)
